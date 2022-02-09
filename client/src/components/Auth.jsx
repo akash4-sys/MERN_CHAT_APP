@@ -13,10 +13,12 @@ const initialState = {
     avatarURL: ''
 }
 
+const cookies = new Cookies();
+
 const Auth = () => {
 
     const [isSignup, setIsSignup] = useState(true);
-    const [form, setForm] = useState();
+    const [form, setForm] = useState(initialState);
 
     const handleChange = (e) => {
 
@@ -35,10 +37,32 @@ const Auth = () => {
         setIsSignup((prevIsSignup) => !prevIsSignup);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async(e) => {
 
         e.preventDefault();
-        console.log(form);
+        const { username, password, phoneNumber, avatarURL } = form;
+
+        const URL = 'http://localhost/auth';
+
+        // making request to the backend on different url's
+        const { data: { token, userId, hashedPassword, fullName } } = await axios.post(`${URL}/${isSignup ? 'signup' : 'login'}`, {
+
+            username, fullName:form.fullName, phoneNumber, avatarURL, password
+        });
+
+        cookies.set('token', token);
+        cookies.set('username', username);
+        cookies.set('fullName', fullName);
+        cookies.set('userId', userId);
+
+        if(isSignup) {
+            cookies.set('phoneNumber', phoneNumber);
+            cookies.set('avatarURL', avatarURL);
+            cookies.set('hashedPassword', hashedPassword);
+        }
+
+        // reloading the browser
+        window.location.reload();
 
     }
 
