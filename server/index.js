@@ -8,13 +8,46 @@ const authRoutes = require('./routes/auth.js');
 
 require('dotenv').config({path:'./config.env'});
 
+const accountSid = process.env.TWILLIO_ACCOUNT_SID;
+const authToken = process.env.TWILLIO_AUTH_TOKEN;
+const messagingServiceSid = process.env.TWILLIO_MESSAGING_SERVICE_SID;
+const twillioClient = require('twillio')(accountSid, authToken);
+
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded());
 
 app.get('/', (req, res) => {
-    res.send('WElcome');
+    res.send('Welcome');
 });
+
+app.post('/', (req, res) => {
+
+    // This data is coming from stream and cannot be tested i developemnt mode
+    const { message, user: sender, type, members } = req.body;
+
+    if(type === 'message.new') {
+        members.filter((member) => {member.user._id !== sender.id}).forEach(({ user }) => {
+            if(!user.online) {
+                twillioClient.message.create({ 
+
+                    body:`You have a message from ${message.user.fullName} - ${message.text}`,
+                    messagingServiceSid: messagingServiceSid,
+                    to: user.phoneNumber
+
+                }).then(() => 
+                    console.log('Message sent')
+                ).catch((err) => {
+                    console.log(err);
+                })
+            }
+        });
+
+        return res.status(200).send("Message Sent!");
+    }
+
+    return res.status(400).send('Not a message request');
+})
 
 app.use('/auth', authRoutes);
 
