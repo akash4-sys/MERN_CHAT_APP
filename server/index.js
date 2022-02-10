@@ -8,10 +8,10 @@ const authRoutes = require('./routes/auth.js');
 
 require('dotenv').config({path:'./config.env'});
 
-const accountSid = process.env.TWILLIO_ACCOUNT_SID;
-const authToken = process.env.TWILLIO_AUTH_TOKEN;
-const messagingServiceSid = process.env.TWILLIO_MESSAGING_SERVICE_SID;
-const twillioClient = require('twillio')(accountSid, authToken);
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID;
+const twilioClient = require('twilio')(accountSid, authToken);
 
 app.use(cors());
 app.use(express.json());
@@ -29,7 +29,7 @@ app.post('/', (req, res) => {
     if(type === 'message.new') {
         members.filter((member) => {member.user._id !== sender.id}).forEach(({ user }) => {
             if(!user.online) {
-                twillioClient.message.create({ 
+                twilioClient.message.create({ 
 
                     body:`You have a message from ${message.user.fullName} - ${message.text}`,
                     messagingServiceSid: messagingServiceSid,
